@@ -12,30 +12,21 @@ class ToDoTableViewController: UITableViewController {
     
     var itemArray = [item]()
     
-    let defaults = UserDefaults.standard
+    //let defaults = UserDefaults.standard
+    
+    let filePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("itemStorage.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print(filePath)
         // Do any additional setup after loading the view, typically from a nib.
         
-        let newItem = item()
-        newItem.title = "FirstItem"
-        newItem.done = true
-        itemArray.append(newItem)
+        loadItems()
         
-        let newItem2 = item()
-        newItem2.title = "SeconedItem"
-        itemArray.append(newItem2)
-        
-        
-        let newItem3 = item()
-        newItem3.title = "ThirdItem"
-        itemArray.append(newItem3)
-        
-        
-        if defaults.array(forKey: "todoListArray") != nil {
-            itemArray = defaults.array(forKey: "todoListArray") as! [item]
-        }
+//        if defaults.array(forKey: "todoListArray") != nil {
+//            itemArray = defaults.array(forKey: "todoListArray") as! [item]
+//        }
         
     }
     
@@ -65,6 +56,8 @@ class ToDoTableViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
+       saveItems()
+        
         tableView.reloadData()
         
 //        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark{
@@ -88,8 +81,13 @@ class ToDoTableViewController: UITableViewController {
             
             let newItem = item()
             newItem.title = alertText.text!
+            
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "todoListArray")
+            
+            self.saveItems()
+            
+            
+           // self.defaults.set(self.itemArray, forKey: "todoListArray")
             self.tableView.reloadData()
         }
         
@@ -101,6 +99,32 @@ class ToDoTableViewController: UITableViewController {
         alert.addAction(actionButton)
         present(alert , animated: true , completion: nil)
     }
+    
+    func saveItems(){
+        
+        let encoder = PropertyListEncoder()
+        do {
+            let data  = try encoder.encode(self.itemArray)
+            try data.write(to: self.filePath!)
+        } catch  {
+            print("the error is \(error)")
+        }
+        
+    }
+    
+    func loadItems (){
+        
+        if let data = try? Data(contentsOf: filePath!){
+            do {
+                let decoder = PropertyListDecoder()
+                itemArray = try decoder.decode([item].self, from: data)
+            } catch  {
+                print("the errors is \(error)")
+            }
+        }
+        
+    }
+    
     
     
     
